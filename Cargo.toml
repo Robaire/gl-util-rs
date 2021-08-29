@@ -1,0 +1,9 @@
+[package]
+name = "gl-util-rs"
+version = "0.1.0"
+edition = "2018"
+authors = ["Robaire Galliath <galliath.robaire@gmail.com>"]
+
+[dependencies]
+gl = "0.14.0"
+image = "0.23.14"
