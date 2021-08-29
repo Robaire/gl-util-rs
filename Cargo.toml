@@ -1,5 +1,5 @@
 [package]
-name = "gl-util-rs"
+name = "gl_util"
 version = "0.1.0"
 edition = "2018"
 authors = ["Robaire Galliath <galliath.robaire@gmail.com>"]
