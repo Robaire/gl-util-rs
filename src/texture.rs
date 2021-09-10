@@ -4,20 +4,15 @@ use gl::types::{GLenum, GLuint};
 
 pub struct Texture {
     texture_type: GLenum,
-    id: GLuint
+    id: GLuint,
 }
 
 impl Texture {
-
     /// Create a new texture object of type texture_type
     pub fn new(texture_type: GLenum) -> Texture {
-
         let id = generate_texture_buffer();
 
-        Texture {
-            texture_type,
-            id
-        }
+        Texture { texture_type, id }
     }
 
     /// Bind this texture
@@ -43,7 +38,6 @@ impl Texture {
 /// * `texture` - Texture Object
 /// * `image` - Texture Data
 pub fn set_2d(texture: &Texture, image: image::ImageBuffer<image::Rgba<u8>, std::vec::Vec<u8>>) {
-
     // This function only works on 2D textures
     assert_eq!(texture.texture_type, gl::TEXTURE_2D);
 
@@ -66,7 +60,6 @@ pub fn set_2d(texture: &Texture, image: image::ImageBuffer<image::Rgba<u8>, std:
 
 /// Set texture data for a 2D_ARRAY texture
 pub fn set_2d_array(texture: &Texture) {
-    
     // This funciton only works on 2D_ARRAY textures
     assert_eq!(texture.texture_type, gl::TEXTURE_2D_ARRAY);
 
@@ -86,7 +79,7 @@ pub fn create_2d_from_file(file: &str) -> Result<Texture, String> {
     // Try to load the texture
     let image = match image::open(file) {
         Ok(img) => img.flipv().into_rgba8(),
-        Err(message) => return Err(message.to_string())
+        Err(message) => return Err(message.to_string()),
     };
 
     // Create a texture and set the image data

@@ -1,4 +1,4 @@
-use gl::types::{GLchar, GLenum};
+use gl::types::GLenum;
 use std::ffi::CString;
 
 /// Set a shader program as used
@@ -88,7 +88,7 @@ fn get_info_log(id: u32) -> String {
             id,
             log_length,
             std::ptr::null_mut(),
-            log.as_ptr() as *mut GLchar,
+            log.as_ptr() as *mut i8,
         );
     };
 

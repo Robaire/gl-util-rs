@@ -1,19 +1,18 @@
-use gl::types::{GLchar, GLenum};
-use std::ffi::CString;
+use gl::types::GLenum;
 
 /// Create a shader using a string as the source code
 /// # Arguments
-/// `source` - The shader source code string
 /// `kind` - The kind of shader to create
-pub fn new_from_string(source: String, kind: GLenum) -> Result<u32, String> {
+/// `source` - The shader source code string
+pub fn new_from_string(kind: GLenum, source: String) -> Result<u32, String> {
     // Create a shader
-    let shader_id = create(kind)?;
+    let shader_id: u32 = create(kind)?;
 
     // Compile the shader
     compile(shader_id, source);
 
     // Check if the shader compiled
-    let status = get_parameter(shader_id, gl::COMPILE_STATUS);
+    let status = get_parameter(shader_id, gl::COMPILE_STATUS)?;
 
     if status == 1 {
         Ok(shader_id)
@@ -26,10 +25,10 @@ pub fn new_from_string(source: String, kind: GLenum) -> Result<u32, String> {
 /// # Arguments
 /// `path` - Path to the source code file
 /// `kind` - The kind of shader to create
-pub fn new_from_file(path: &str, kind: GLenum) -> Result<u32, String> {
+pub fn new_from_file(kind: GLenum, path: &str) -> Result<u32, String> {
     // Read the source file in as a string
     match std::fs::read_to_string(path) {
-        Ok(source) => new_from_string(source, kind),
+        Ok(source) => new_from_string(kind, source),
         Err(message) => Err(message.to_string()),
     }
 }
@@ -44,6 +43,7 @@ fn create(kind: GLenum) -> Result<u32, String> {
     };
 
     if id == 0 {
+        // TODO: Get an error message from the GPU
         return Err("Shader could not be created".to_string());
     } else {
         return Ok(id);
@@ -59,35 +59,42 @@ fn compile(id: u32, source: String) {
         gl::ShaderSource(
             id,
             1,
-            &CString::new(source).unwrap().as_ptr(),
+            // TODO: Get rid of warning message
+            &std::ffi::CString::new(source).unwrap().as_ptr(),
             std::ptr::null(),
         );
         gl::CompileShader(id);
     };
+
+    // TODO: Check for compilation error
 }
 
 /// Get a shader parameter
 /// # Arguments
 /// `id` - Shader ID
 /// `param` - The shader parameter to retrieve
-fn get_parameter(id: u32, param: GLenum) -> i32 {
-    let mut status: i32 = 0;
+fn get_parameter(id: u32, param: GLenum) -> Result<i32, String> {
+    let mut status = 0;
     unsafe {
         gl::GetShaderiv(id, param, &mut status);
     };
 
-    status
+    if status == 0 {
+        Err("".to_string())
+    } else {
+        Ok(status)
+    }
 }
 
 /// Get a shader's info log
 /// `id` - Shader ID
 fn get_info_log(id: u32) -> String {
-    let log_length = get_parameter(id, gl::INFO_LOG_LENGTH);
+    let log_length = get_parameter(id, gl::INFO_LOG_LENGTH).unwrap();
 
-    let log: CString = {
+    let log: std::ffi::CString = {
         let mut buffer: Vec<u8> = Vec::with_capacity(log_length as usize + 1);
         buffer.extend([b' '].iter().cycle().take(log_length as usize));
-        unsafe { CString::from_vec_unchecked(buffer) }
+        unsafe { std::ffi::CString::from_vec_unchecked(buffer) }
     };
 
     unsafe {
@@ -95,7 +102,7 @@ fn get_info_log(id: u32) -> String {
             id,
             log_length,
             std::ptr::null_mut(),
-            log.as_ptr() as *mut GLchar,
+            log.as_ptr() as *mut i8,
         );
     };
 
